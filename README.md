@@ -27,7 +27,7 @@ create_lxc_container.sh testlxd 1 /tmp/share
 ### create_gui_container.sh
 Creates an GUI capable Ubuntu 18.04 container named `testgui` with the directory `/tmp/share` shared in the container as `/host`. Firefox is installed to provide GUI packages and a testable application.
 ```
-create_lxc_container.sh testgui 1 /tmp/share
+create_gui_container.sh testgui 1 /tmp/share
 ```
 
 ### delete_lxc_container.sh
