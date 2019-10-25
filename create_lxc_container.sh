@@ -52,6 +52,9 @@ echo ""
 echo "Setting up shared directory..."
 lxc config device add $CONT_NAME shareddir disk path=/host source=$SHARE
 
+echo "Setting up id mapping.."
+lxc config set $CONT_NAME raw.idmap 'both 1000 1000'
+
 echo "Starting container..."
 lxc start $CONT_NAME
 
@@ -84,7 +87,8 @@ elif [ "$IMAGE_ID" -eq "4" ]; then
 fi
 
 echo "Entering container..."
-if [ "$IMAGE_ID" -eq "3" ]; then
+if [ "$IMAGE_ID" -eq "3" ] || [ "$IMAGE_ID" -eq "2" ]; then
+    echo "!!! - Commands like 'sudo' and 'su' won't work due to this not really being a real tty. Use SSH for better access."
     lxc exec -t $CONT_NAME -- sudo --login --user ${USER} bash
 else
     lxc exec -t $CONT_NAME -- sudo --login --user ${USER} tmux
