@@ -7,6 +7,7 @@ function usage {
     echo "image ids:"
     echo "[1] Ubuntu 18.04"
     echo "[2] Ubuntu 16.04"
+    echo "[3] Kali"
     exit 1
 }
 
@@ -47,6 +48,9 @@ if [ "$IMAGE_ID" -eq "1" ]; then
 elif [ "$IMAGE_ID" -eq "2" ]; then
     echo "Creating Ubuntu 16.04 container"
     lxc init --profile default --profile lxdgui images:ubuntu/16.04 $CONT_NAME
+elif [ "$IMAGE_ID" -eq "3" ]; then
+    echo "Creating Kali container"
+    lxc init --profile default --profile lxdgui images:kali $CONT_NAME
 else
     echo "Invalid image id"
     exit 1
@@ -75,13 +79,19 @@ if [ "$IMAGE_ID" -eq "1" ] || [ "$IMAGE_ID" -eq "2" ]; then
     lxc exec $CONT_NAME -- usermod -d /home/${USER} $USER
     lxc exec $CONT_NAME -- groupmod --new-name $USER ubuntu
     lxc exec $CONT_NAME -- mv /home/ubuntu /home/${USER}
-    lxc exec $CONT_NAME -- /bin/bash -c "echo '${USER}:${PASSWORD}' | chpasswd"
-    lxc exec $CONT_NAME -- sed -i "s/; enable-shm = yes/enable-shm = no/g" /etc/pulse/client.conf
-    lxc exec $CONT_NAME -- /bin/bash -c "echo export PULSE_SERVER=unix:/tmp/.pulse-native | tee --append /home/${USER}/.profile"
+elif [ "$IMAGE_ID" -eq "3" ]; then
+    lxc exec $CONT_NAME -- /bin/bash -c 'apt-get update; apt-get install -y openssh-server curl wget x11-apps mesa-utils pulseaudio firefox-esr sudo'
+    lxc exec $CONT_NAME -- useradd -s /bin/bash -m $USER
+    lxc exec $CONT_NAME -- /bin/bash -c "echo '${PASSWORD}' | passwd --stdin root"
+    lxc exec $CONT_NAME -- usermod -a -G sudo $USER
 else
     echo "Invalid image"
     exit 1
 fi
+
+lxc exec $CONT_NAME -- /bin/bash -c "echo '${USER}:${PASSWORD}' | chpasswd"
+lxc exec $CONT_NAME -- sed -i "s/; enable-shm = yes/enable-shm = no/g" /etc/pulse/client.conf
+lxc exec $CONT_NAME -- /bin/bash -c "echo export PULSE_SERVER=unix:/tmp/.pulse-native | tee --append /home/${USER}/.profile"
 
 echo "Entering container..."
 echo ""
