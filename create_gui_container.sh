@@ -80,9 +80,9 @@ if [ "$IMAGE_ID" -eq "1" ] || [ "$IMAGE_ID" -eq "2" ]; then
     lxc exec $CONT_NAME -- groupmod --new-name $USER ubuntu
     lxc exec $CONT_NAME -- mv /home/ubuntu /home/${USER}
 elif [ "$IMAGE_ID" -eq "3" ]; then
-    lxc exec $CONT_NAME -- /bin/bash -c 'apt-get update; apt-get install -y openssh-server curl wget x11-apps mesa-utils pulseaudio firefox-esr sudo'
+    lxc exec $CONT_NAME -- /bin/bash -c 'apt-get update; apt-get install -y openssh-server curl wget x11-apps mesa-utils pulseaudio firefox-esr sudo tmux'
     lxc exec $CONT_NAME -- useradd -s /bin/bash -m $USER
-    lxc exec $CONT_NAME -- /bin/bash -c "echo '${PASSWORD}' | passwd --stdin root"
+    lxc exec $CONT_NAME -- /bin/bash -c "echo '${USER}:${PASSWORD}' | chpasswd"
     lxc exec $CONT_NAME -- usermod -a -G sudo $USER
 else
     echo "Invalid image"
