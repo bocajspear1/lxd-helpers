@@ -8,6 +8,7 @@ function usage {
     echo "[1] Ubuntu 18.04"
     echo "[2] Ubuntu 16.04"
     echo "[3] Kali"
+    echo "[4] Ubuntu 20.04"
     exit 1
 }
 
@@ -51,6 +52,9 @@ elif [ "$IMAGE_ID" -eq "2" ]; then
 elif [ "$IMAGE_ID" -eq "3" ]; then
     echo "Creating Kali container"
     lxc init --profile default --profile lxdgui images:kali $CONT_NAME
+elif [ "$IMAGE_ID" -eq "4" ]; then
+    echo "Creating Ubuntu 20.04 container"
+    lxc init --profile default --profile lxdgui images:ubuntu/20.04 $CONT_NAME
 else
     echo "Invalid image id"
     exit 1
@@ -84,6 +88,12 @@ elif [ "$IMAGE_ID" -eq "3" ]; then
     lxc exec $CONT_NAME -- useradd -s /bin/bash -m $USER
     lxc exec $CONT_NAME -- /bin/bash -c "echo '${USER}:${PASSWORD}' | chpasswd"
     lxc exec $CONT_NAME -- usermod -a -G sudo $USER
+elif [ "$IMAGE_ID" -eq "4" ]; then
+    lxc exec $CONT_NAME -- /bin/bash -c 'apt-get update; apt-get install -y openssh-server curl wget x11-apps mesa-utils pulseaudio firefox'
+    lxc exec $CONT_NAME -- usermod -l $USER ubuntu
+    lxc exec $CONT_NAME -- usermod -d /home/${USER} $USER
+    lxc exec $CONT_NAME -- groupmod --new-name $USER ubuntu
+    lxc exec $CONT_NAME -- mv /home/ubuntu /home/${USER}
 else
     echo "Invalid image"
     exit 1

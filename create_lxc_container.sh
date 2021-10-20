@@ -8,7 +8,8 @@ function usage {
     echo "[1] Ubuntu 18.04"
     echo "[2] Ubuntu 16.04"
     echo "[3] CentOS 7"
-    echo "[4] Alpine 3.10"
+    echo "[4] Alpine 3.12"
+    echo "[5] Ubuntu 20.04"
     exit 1
 }
 
@@ -41,8 +42,11 @@ elif [ "$IMAGE_ID" -eq "3" ]; then
     echo "Creating CentOS 7 container"
     lxc init images:centos/7 $CONT_NAME
 elif [ "$IMAGE_ID" -eq "4" ]; then
-    echo "Creating Alpine 3.10 container"
-    lxc init images:alpine/3.10 $CONT_NAME
+    echo "Creating Alpine 3.12 container"
+    lxc init images:alpine/3.12 $CONT_NAME
+elif [ "$IMAGE_ID" -eq "5" ]; then
+    echo "Creating Ubuntu 20.04 container"
+    lxc init images:ubuntu/20.04 $CONT_NAME
 fi
 
 echo "Password for user and root (if required):"
@@ -76,6 +80,7 @@ elif [ "$IMAGE_ID" -eq "3" ]; then
     lxc exec $CONT_NAME -- usermod -d /home/${USER} -m $USER
     lxc exec $CONT_NAME -- /bin/bash -c "echo '${PASSWORD}' | passwd --stdin ${USER}"
     lxc exec $CONT_NAME -- /bin/bash -c "echo '${PASSWORD}' | passwd --stdin root"
+    lxc exec $CONT_NAME -- service sshd start
 elif [ "$IMAGE_ID" -eq "4" ]; then
     echo "Setting up Alpine 3.10 container"
     lxc exec $CONT_NAME -- /bin/ash -c 'apk update; apk add openssh-server tmux sudo wget curl'
@@ -83,7 +88,15 @@ elif [ "$IMAGE_ID" -eq "4" ]; then
     lxc exec $CONT_NAME -- /bin/ash -c "echo '${USER}:${PASSWORD}' | chpasswd"
     lxc exec $CONT_NAME -- /bin/ash -c "echo 'root:${PASSWORD}' | chpasswd"
     lxc exec $CONT_NAME -- /bin/ash -c "echo '%wheel ALL=(ALL) ALL' >> /etc/sudoers"
-    lxc exec $CONT_NAME -- adduser jacob wheel
+    lxc exec $CONT_NAME -- adduser ${USER} wheel
+elif [ "$IMAGE_ID" -eq "5" ]; then
+    echo "Setting up Ubuntu 20.04 container"
+    lxc exec $CONT_NAME -- /bin/bash -c 'apt-get update; apt-get install -y openssh-server tmux curl wget'
+    lxc exec $CONT_NAME -- usermod -l $USER ubuntu
+    lxc exec $CONT_NAME -- usermod -d /home/${USER} $USER
+    lxc exec $CONT_NAME -- groupmod --new-name $USER ubuntu
+    lxc exec $CONT_NAME -- mv /home/ubuntu /home/${USER}
+    lxc exec $CONT_NAME -- /bin/bash -c "echo '${USER}:${PASSWORD}' | chpasswd"
 fi
 
 echo "Entering container..."
